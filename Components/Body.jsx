@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import { spaceId, accessToken } from '@env'
+import React, { useEffect, useState } from 'react';
+import { spaceId, accessToken } from '@env';
 import BodyCarousel from './BodyCarousel';
-import { View, Text, StyleSheet, Alert, FlatList, Image, TouchableOpacity } from 'react-native'
-import axios from 'axios'
-export default function Body() {
+import { View, Text, StyleSheet, Alert, FlatList, Image, TouchableOpacity } from 'react-native';
+import axios from 'axios';
+
+export default function Body(props) {
+    const { items, setitems } = props;
+    const [cart, setcart] = useState([]);
     const [list, setList] = useState([]);
     const [assets, setassets] = useState([]);
     const url = `https://cdn.contentful.com/spaces/${spaceId}/entries?access_token=${accessToken}&content_type=product`;
@@ -13,18 +16,20 @@ export default function Body() {
             try {
                 const response = await axios.get(url);
                 setList(response?.data?.items);
-                setassets(response?.data?.includes?.Asset)
-                console.log(response?.data);
+                setassets(response?.data?.includes?.Asset);
+                const initialcart = response?.data?.items?.map(() => ({ added: false }));
+                setcart(initialcart);
             } catch (error) {
                 console.error('Error fetching data from Contentful:', error);
             }
         };
         fetchData();
     }, []);
+
     const container = StyleSheet.create({
         body: {
             backgroundColor: "#fff",
-            padding: 20
+            padding: 20,
         },
         categoriesText: {
             fontSize: 24,
@@ -79,16 +84,32 @@ export default function Body() {
             marginTop: 10,
             marginBottom: 10,
         },
+        redbutton: {
+            backgroundColor: 'red',
+            paddingVertical: 10,
+            paddingHorizontal: 20,
+            borderRadius: 5,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 10,
+            marginBottom: 10,
+        },
         buttonText: {
             color: '#fff',
             fontWeight: 'bold',
         },
-    })
-    const renderProduct = ({ item }) => {
+    });
+
+    const renderProduct = ({ item, index }) => {
         const imageAsset = assets?.find(asset => asset?.sys?.id === item.fields.image.sys.id);
-
         const imageUrl = ("https://" + imageAsset?.fields?.file?.url) || 'https://via.placeholder.com/100';
-
+        const handlechange = (index) => {
+            const newcart = cart;
+            if (newcart[index].added) setitems(items - 1);
+            else setitems(items + 1);
+            newcart[index].added = !newcart[index].added;
+            setcart(newcart);
+        };
         return (
             <View style={container.sectionContainer}>
                 <Image
@@ -99,29 +120,39 @@ export default function Body() {
                     <Text style={container.title}>{item.fields.title}</Text>
                     <Text style={container.price}>${item.fields.price}</Text>
                     <Text style={container.description}>{item.fields.description}</Text>
-                    <TouchableOpacity style={container.button} onPress={() => alert('Added to cart')}>
-                        <Text style={container.buttonText}>Add to Cart</Text>
-                    </TouchableOpacity>
+                    {cart[index].added ? (
+                        <TouchableOpacity style={container.redbutton} onPress={() => { alert(`${item.fields.title} removed from cart`); handlechange(index); }}>
+                            <Text style={container.buttonText}>Remove from Cart</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity style={container.button} onPress={() => { alert(`${item.fields.title} added to cart`); handlechange(index); }}>
+                            <Text style={container.buttonText}>Add to Cart</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
         );
-    }
+    };
+
+    const renderHeader = () => {
+        return (
+            <View style={container.body}>
+                <Text style={container.categoriesText}>Home</Text>
+                <BodyCarousel props={assets}></BodyCarousel>
+                <Text style={container.categoriesText}>Categories</Text>
+            </View>
+        );
+    };
+
     return (
-        <View style={container.body}>
-            <Text style={container.categoriesText}>Categories</Text>
-            {list.length > 0 ? (
-                <FlatList
-                    data={list}
-                    keyExtractor={(item) => item.sys.id}
-                    renderItem={renderProduct}
-                    numColumns={"2"}
-                    columnWrapperStyle={{ justifyContent: 'space-between' }}
-                    contentContainerStyle={{ paddingBottom: 20 }}
-                />
-            ) : (
-                <Text>Loading...</Text>
-            )}
-            <BodyCarousel carouseldata={assets}></BodyCarousel>
-        </View>
-    )
+        <FlatList
+            ListHeaderComponent={renderHeader}
+            data={list}
+            keyExtractor={(item) => item.sys.id}
+            renderItem={renderProduct}
+            numColumns={2}
+            columnWrapperStyle={{ justifyContent: 'space-between' }}
+            contentContainerStyle={{ paddingBottom: 10 }}
+        />
+    );
 }

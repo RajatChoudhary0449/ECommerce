@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 
-const component = () => {
-    useEffect(() => { Alert.alert("Hello") }, [])
-    return (<View><Text>Welcome to the app</Text></View>)
+
+interface Header2Props {
+    items: number;
 }
-const Header2: React.FC = () => {
-    component()
+const Header2: React.FC<Header2Props> = ({ items }) => {
+
     return (
         <View style={styles.container}>
             <View style={styles.logoContainer}>
@@ -28,7 +28,7 @@ const Header2: React.FC = () => {
                     source={require('./../Assets/Images/cart.png')}
                     style={styles.cartIcon}
                 />
-                <Text style={styles.cartBadge}>3</Text>
+                <Text style={styles.cartBadge}>{items}</Text>
             </TouchableOpacity>
         </View>
     );

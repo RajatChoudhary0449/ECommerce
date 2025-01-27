@@ -5,7 +5,7 @@
  * @format
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import Header2 from './Components/Header2';
 import Body from './Components/Body';
 import Footer from './Components/Footer';
@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 
 function App(): React.JSX.Element {
+  const [items, setitems] = useState<number>(0);
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -28,8 +29,8 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content"></StatusBar>
-      <Header2></Header2>
-      <Body></Body>
+      <Header2 items={items} />
+      <Body items={items} setitems={setitems}></Body>
       <Footer></Footer>
     </SafeAreaView>
   );
