@@ -21,6 +21,7 @@ import {
 
 function App(): React.JSX.Element {
   const [items, setitems] = useState<number>(0);
+  const [search, setsearch] = useState<string>("");
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -29,8 +30,8 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content"></StatusBar>
-      <Header2 items={items} />
-      <Body items={items} setitems={setitems}></Body>
+      <Header2 items={items} setsearch={setsearch} />
+      <Body items={items} setitems={setitems} search={search}></Body>
       <Footer></Footer>
     </SafeAreaView>
   );

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { spaceId, accessToken } from '@env';
 import BodyCarousel from './BodyCarousel';
-import { View, Text, StyleSheet, Alert, FlatList, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 
 export default function Body(props) {
-    const { items, setitems } = props;
+    const { items, setitems, search } = props;
     const [cart, setcart] = useState([]);
     const [list, setList] = useState([]);
+    const [filteredlist, setFilteredlist] = useState([]);
     const [assets, setassets] = useState([]);
     const url = `https://cdn.contentful.com/spaces/${spaceId}/entries?access_token=${accessToken}&content_type=product`;
 
@@ -23,8 +24,20 @@ export default function Body(props) {
                 console.error('Error fetching data from Contentful:', error);
             }
         };
+
         fetchData();
     }, []);
+
+    useEffect(() => {
+        if (search === "") {
+            setFilteredlist(list);
+        } else {
+            const filtered = list.filter(item =>
+                item.fields.title.toLowerCase().includes(search.toLowerCase())
+            );
+            setFilteredlist(filtered);
+        }
+    }, [search, list]);
 
     const container = StyleSheet.create({
         body: {
@@ -98,6 +111,13 @@ export default function Body(props) {
             color: '#fff',
             fontWeight: 'bold',
         },
+        noEntries: {
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: '#555',
+            textAlign: 'center',
+            marginTop: 20,
+        },
     });
 
     const renderProduct = ({ item, index }) => {
@@ -138,21 +158,27 @@ export default function Body(props) {
         return (
             <View style={container.body}>
                 <Text style={container.categoriesText}>Home</Text>
-                <BodyCarousel props={assets}></BodyCarousel>
+                <BodyCarousel props={assets} />
                 <Text style={container.categoriesText}>Categories</Text>
             </View>
         );
     };
 
     return (
-        <FlatList
-            ListHeaderComponent={renderHeader}
-            data={list}
-            keyExtractor={(item) => item.sys.id}
-            renderItem={renderProduct}
-            numColumns={2}
-            columnWrapperStyle={{ justifyContent: 'space-between' }}
-            contentContainerStyle={{ paddingBottom: 10 }}
-        />
+        <View style={{ flex: 1 }}>
+            {filteredlist.length === 0 ? (
+                <Text style={container.noEntries}>No entries found</Text>
+            ) : (
+                <FlatList
+                    ListHeaderComponent={renderHeader}
+                    data={filteredlist}
+                    keyExtractor={(item) => item.sys.id}
+                    renderItem={renderProduct}
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: 'space-between' }}
+                    contentContainerStyle={{ paddingBottom: 10 }}
+                />
+            )}
+        </View>
     );
 }

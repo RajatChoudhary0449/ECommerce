@@ -4,8 +4,9 @@ import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } fro
 
 interface Header2Props {
     items: number;
+    setsearch: React.Dispatch<React.SetStateAction<string>>;
 }
-const Header2: React.FC<Header2Props> = ({ items }) => {
+const Header2: React.FC<Header2Props> = ({ items, setsearch }) => {
 
     return (
         <View style={styles.container}>
@@ -20,6 +21,7 @@ const Header2: React.FC<Header2Props> = ({ items }) => {
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Search for products..."
+                    onChangeText={(text: string) => setsearch(text)}
                 />
             </View>
 
