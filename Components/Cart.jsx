@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, Button, TextInput, Alert } from 'react-native';
 import { AppContext } from '../App';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Cart() {
     const { items, setItems, search, setSearch, cart, setCart, list, filteredList, assets, quantity, setQuantity } = useContext(AppContext);
+    const navigation = useNavigation();
     const [cartedlist, setCartedList] = useState([]);
 
     useEffect(() => {
@@ -86,11 +88,12 @@ export default function Cart() {
 
     const handleCheckout = () => {
         const totalAmount = calculateTotalAmount();
-        Alert.alert(
-            "Checkout",
-            `Your total price is $${totalAmount.toFixed(2)}\nHappy shopping!`,
-            [{ text: "OK" }]
-        );
+        // Alert.alert(
+        //     "Checkout",
+        //     `Your total price is $${totalAmount.toFixed(2)}\nHappy shopping!`,
+        //     [{ text: "OK" }]
+        // );
+        navigation.navigate("Location")
     };
 
     return (

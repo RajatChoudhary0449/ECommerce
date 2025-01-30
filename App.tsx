@@ -6,6 +6,7 @@ import Header2 from './Components/Header2';
 import Body from './Components/Body';
 import Footer from './Components/Footer';
 import Cart from './Components/Cart';
+import Location from './Components/Location';
 import axios from 'axios';
 import { spaceId, accessToken } from '@env';
 
@@ -43,7 +44,6 @@ function App(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    console.log("Called");
     if (search === "") {
       setFilteredList(list);
     } else {
@@ -70,6 +70,7 @@ function App(): React.JSX.Element {
           <Stack.Navigator>
             <Stack.Screen name="Home" component={Body} />
             <Stack.Screen name="Cart" component={Cart} />
+            <Stack.Screen name="Location" component={Location} />
           </Stack.Navigator>
           <Footer />
         </NavigationContainer>
