@@ -1,13 +1,12 @@
-import React, { useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import React from 'react';
+import { useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { AppContext } from '../App';
 
-
-interface Header2Props {
-    items: number;
-    setsearch: React.Dispatch<React.SetStateAction<string>>;
-}
-const Header2: React.FC<Header2Props> = ({ items, setsearch }) => {
-
+const Header2 = () => {
+    const { items, setSearch } = useContext(AppContext);
+    const navigation = useNavigation();
     return (
         <View style={styles.container}>
             <View style={styles.logoContainer}>
@@ -21,18 +20,18 @@ const Header2: React.FC<Header2Props> = ({ items, setsearch }) => {
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Search for products..."
-                    onChangeText={(text: string) => setsearch(text)}
+                    onChangeText={(text) => setSearch(text)}
                 />
             </View>
 
-            <TouchableOpacity style={styles.cartContainer}>
+            <TouchableOpacity style={styles.cartContainer} onPress={() => { navigation.navigate("Cart") }}>
                 <Image
                     source={require('./../Assets/Images/cart.png')}
                     style={styles.cartIcon}
                 />
                 <Text style={styles.cartBadge}>{items}</Text>
             </TouchableOpacity>
-        </View>
+        </View >
     );
 };
 

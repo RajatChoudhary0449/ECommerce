@@ -1,43 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { spaceId, accessToken } from '@env';
-import BodyCarousel from './BodyCarousel';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
-import axios from 'axios';
+import { AppContext } from '../App';
+import BodyCarousel from './BodyCarousel';
 
-export default function Body(props) {
-    const { items, setitems, search } = props;
-    const [cart, setcart] = useState([]);
-    const [list, setList] = useState([]);
-    const [filteredlist, setFilteredlist] = useState([]);
-    const [assets, setassets] = useState([]);
-    const url = `https://cdn.contentful.com/spaces/${spaceId}/entries?access_token=${accessToken}&content_type=product`;
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(url);
-                setList(response?.data?.items);
-                setassets(response?.data?.includes?.Asset);
-                const initialcart = response?.data?.items?.map(() => ({ added: false }));
-                setcart(initialcart);
-            } catch (error) {
-                console.error('Error fetching data from Contentful:', error);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        if (search === "") {
-            setFilteredlist(list);
-        } else {
-            const filtered = list.filter(item =>
-                item.fields.title.toLowerCase().includes(search.toLowerCase())
-            );
-            setFilteredlist(filtered);
-        }
-    }, [search, list]);
+export default function Body() {
+    const { items, setItems, search, setSearch, cart, setCart, list, filteredList, assets, quantity, setQuantity } = useContext(AppContext);
 
     const container = StyleSheet.create({
         body: {
@@ -76,11 +43,6 @@ export default function Body(props) {
             fontSize: 18,
             fontWeight: 'bold',
             marginBottom: 5,
-        },
-        description: {
-            fontSize: 14,
-            color: '#555',
-            marginBottom: 10,
         },
         price: {
             fontSize: 16,
@@ -123,29 +85,40 @@ export default function Body(props) {
     const renderProduct = ({ item, index }) => {
         const imageAsset = assets?.find(asset => asset?.sys?.id === item.fields.image.sys.id);
         const imageUrl = ("https://" + imageAsset?.fields?.file?.url) || 'https://via.placeholder.com/100';
-        const handlechange = (index) => {
-            const newcart = cart;
-            if (newcart[index].added) setitems(items - 1);
-            else setitems(items + 1);
-            newcart[index].added = !newcart[index].added;
-            setcart(newcart);
+
+        const handleChange = (title) => {
+            const newCart = [...cart];
+            const itemIndex = newCart.findIndex(cartItem => cartItem.title === title);
+            const newQuantity = quantity;
+            if (itemIndex === -1) return;
+
+            if (newCart[itemIndex].added) setItems(prevItems => prevItems - 1);
+            else setItems(prevItems => prevItems + 1);
+
+            newCart[itemIndex].added = !newCart[itemIndex].added;
+            if (newCart[itemIndex].added) newQuantity.map(qty => qty.title === title ? { ...qty, quantity: 1 } : qty);
+            else newQuantity.map(qty => qty.title === title ? { ...qty, quantity: 0 } : qty);
+            setCart(newCart);
+            setQuantity(newQuantity);
         };
+
+        const checkcarteditem = (title) => {
+            const cur = cart.filter(c => c.title === title);
+            return cur.length > 0 && cur[0].added;
+        };
+
         return (
             <View style={container.sectionContainer}>
-                <Image
-                    source={{ uri: imageUrl }}
-                    style={container.image}
-                />
+                <Image source={{ uri: imageUrl }} style={container.image} />
                 <View style={container.textContainer}>
                     <Text style={container.title}>{item.fields.title}</Text>
                     <Text style={container.price}>${item.fields.price}</Text>
-                    <Text style={container.description}>{item.fields.description}</Text>
-                    {cart[index].added ? (
-                        <TouchableOpacity style={container.redbutton} onPress={() => { alert(`${item.fields.title} removed from cart`); handlechange(index); }}>
+                    {checkcarteditem(item.fields.title) ? (
+                        <TouchableOpacity style={container.redbutton} onPress={() => { alert(`${item.fields.title} removed from cart`); handleChange(item.fields.title); }}>
                             <Text style={container.buttonText}>Remove from Cart</Text>
                         </TouchableOpacity>
                     ) : (
-                        <TouchableOpacity style={container.button} onPress={() => { alert(`${item.fields.title} added to cart`); handlechange(index); }}>
+                        <TouchableOpacity style={container.button} onPress={() => { alert(`${item.fields.title} added to cart`); handleChange(item.fields.title); }}>
                             <Text style={container.buttonText}>Add to Cart</Text>
                         </TouchableOpacity>
                     )}
@@ -157,7 +130,6 @@ export default function Body(props) {
     const renderHeader = () => {
         return (
             <View style={container.body}>
-                <Text style={container.categoriesText}>Home</Text>
                 <BodyCarousel props={assets} />
                 <Text style={container.categoriesText}>Categories</Text>
             </View>
@@ -166,12 +138,12 @@ export default function Body(props) {
 
     return (
         <View style={{ flex: 1 }}>
-            {filteredlist.length === 0 ? (
+            {filteredList.length === 0 ? (
                 <Text style={container.noEntries}>No entries found</Text>
             ) : (
                 <FlatList
                     ListHeaderComponent={renderHeader}
-                    data={filteredlist}
+                    data={filteredList}
                     keyExtractor={(item) => item.sys.id}
                     renderItem={renderProduct}
                     numColumns={2}
